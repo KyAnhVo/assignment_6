@@ -1,8 +1,9 @@
 F := objFile
 OBJ := ${F}/server_tcp.o ${F}/server_udp.o ${F}/echo_s.o
 
-echo_s : ${OBJ} | ${F}
+${F}/echo_s : ${OBJ} | ${F}
 	g++ -o echo_s ${OBJ}
+	mv echo_s objFile
 
 ${F}/echo_s.o : echo_s.cpp | ${F}
 	g++ -c echo_s.cpp
