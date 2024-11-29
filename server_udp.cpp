@@ -18,7 +18,7 @@
 
 /**
  * Used to multithread for UDP side
- * @param argv: address to port number (ushort)
+ * @param argv: {ushort *} port number address
  */
 void *serverUDP(void* argv)
 {
