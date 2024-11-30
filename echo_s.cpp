@@ -54,5 +54,4 @@ int main(int argc, char** argv)
 
     pthread_join(tcpThread, NULL);
     pthread_join(udpThread, NULL);
-    printf("** UDP/TCP threads joined **\n");
 }
