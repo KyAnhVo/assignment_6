@@ -44,6 +44,15 @@ void *serverUDP(void* argv)
     servaddr.sin_addr.s_addr    = INADDR_ANY;
     servaddr.sin_family         = AF_INET;
 
+    // Enable SO_REUSEADDR
+    int opt = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+    {
+        printf("ERR: TCP: setsockopt failed\n");
+        exit(1);    
+    }
+    printf("** TCP: set SO_REUSEADDR successfully **\n");
+
     // bind socket to port
     int status = bind(sockfd, (const SA *) &servaddr, sizeof(struct sockaddr_in));
     if (status != 0)
@@ -63,8 +72,7 @@ void *serverUDP(void* argv)
     }
     printf("** UDP: create socket successfully for log_s **\n");
 
-    // Enable SO_REUSEADDR
-    int opt = 1;
+    // Enable SO_REUSEADDR for log_s socket
     if (setsockopt(logsfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
         printf("ERR: TCP: setsockopt failed\n");
@@ -76,7 +84,7 @@ void *serverUDP(void* argv)
     bzero(&logsaddr, sizeof(struct sockaddr_in));
     logsaddr.sin_port           = htons((short) 9999);
     logsaddr.sin_family         = AF_INET;
-    logsaddr.sin_addr.s_addr    = inet_addr("127.0.0.1");
+    logsaddr.sin_addr.s_addr    = htonl(inet_addr("127.0.0.1"));
     if (bind(logsfd, (const SA *) &logsaddr, sizeof(struct sockaddr_in)) != 0)
     {
         printf("ERR: UDP: bind socket-port failed for log_s\n");

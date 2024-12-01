@@ -127,7 +127,7 @@ void *serverTcpConnection(void* argv)
     bzero(&logsaddr, sizeof(struct sockaddr_in));
     logsaddr.sin_port           = htons((short) 9999);
     logsaddr.sin_family         = AF_INET;
-    logsaddr.sin_addr.s_addr    = inet_addr("127.0.0.1");
+    logsaddr.sin_addr.s_addr    = htonl(inet_addr("127.0.0.1"));
     if (bind(logsfd, (const SA *) &logsaddr, sizeof(struct sockaddr_in)) != 0)
     {
         printf("ERR: TCP: bind socket-port failed for log_s\n");

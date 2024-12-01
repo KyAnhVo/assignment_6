@@ -1,3 +1,9 @@
+/**
+ * Author: Ky Anh Vo
+ * Class: CS3377-502
+ * Description: server that receives from any ip through a specified op. Max 5 TCP, UDP can be whatever.
+ */
+
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
