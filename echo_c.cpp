@@ -97,7 +97,7 @@ void tcpCli(char* ip, ushort port)
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(port);
     servaddr.sin_addr.s_addr = htonl(inet_addr(ip));
-    if (connect(sockfd, (const sockaddr *) &servaddr, sizeof(struct sockaddr_in) != 0)
+    if (connect(sockfd, (const sockaddr *) &servaddr, sizeof(struct sockaddr_in) != 0))
     {
         printf("ERR: connection failed\n");
         exit(1);
