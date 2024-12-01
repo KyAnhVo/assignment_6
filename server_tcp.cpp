@@ -45,7 +45,7 @@ void *serverTCP(void* argv)
         printf("ERR: TCP: create socket failed\n");
         exit(1);
     }
-    printf("** TCP: create socket successfully **\n");
+    // printf("** TCP: create socket successfully **\n");
 
     // change servaddr to have correct port and ip
     // NOTE: change inet_addr after testing
@@ -61,7 +61,7 @@ void *serverTCP(void* argv)
         printf("ERR: TCP: bind socket-port failed\n");
         exit(1);
     }
-    printf("** TCP: bind socket-port successfully **\n");
+    // printf("** TCP: bind socket-port successfully **\n");
     
     // TODO: continue implementation
 
@@ -71,7 +71,7 @@ void *serverTCP(void* argv)
         printf("ERR: TCP: listen failed\n");
         exit(1);
     }
-    printf("** TCP: listen successfully **\n");
+    // printf("** TCP: listen successfully **\n");
 
     struct ThreadArgs arg[5];
     for (int i = 0; i < 5; i++)
@@ -103,7 +103,7 @@ void *serverTcpConnection(void* argv)
     struct ThreadArgs args = *((struct ThreadArgs *) argv);
     int sockfd = args.socket, logsfd;
     sockaddr_in cli = *(args.clientAddress), logsaddr;
-    printf("** TCP: accepted call at socket %d **\n", sockfd);
+    // printf("** TCP: accepted call at socket %d **\n", sockfd);
 
     // setup log_s communication
     logsfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -112,7 +112,7 @@ void *serverTcpConnection(void* argv)
         printf("ERR: TCP: create log_s socket failed\n");
         exit(1);
     }
-    printf("** TCP: create socket successfully for log_s **\n");
+    // printf("** TCP: create socket successfully for log_s **\n");
 
     // Enable SO_REUSEADDR
     int opt = 1;
@@ -121,19 +121,19 @@ void *serverTcpConnection(void* argv)
         printf("ERR: TCP: setsockopt failed\n");
         exit(1);    
     }
-    printf("** TCP: set SO_REUSEADDR successfully for log_s **\n");
+    // printf("** TCP: set SO_REUSEADDR successfully for log_s **\n");
 
     // bind log_s to 9999 port
     bzero(&logsaddr, sizeof(struct sockaddr_in));
     logsaddr.sin_port           = htons((short) 9999);
     logsaddr.sin_family         = AF_INET;
-    logsaddr.sin_addr.s_addr    = htonl(inet_addr("127.0.0.1"));
+    logsaddr.sin_addr.s_addr    = inet_addr("127.0.0.1");
     if (bind(logsfd, (const SA *) &logsaddr, sizeof(struct sockaddr_in)) != 0)
     {
         printf("ERR: TCP: bind socket-port failed for log_s\n");
         exit(1);
     }
-    printf("** TCP: bind socket-port successfully for log_s **\n");
+    // printf("** TCP: bind socket-port successfully for log_s **\n");
 
     char buffer[100];
     
@@ -146,13 +146,13 @@ void *serverTcpConnection(void* argv)
             ("ERR: TCP: socket %d: recv() error\n", sockfd);
         }
         if (count == 0) continue;
-        if (strcmp(buffer, "exit\n") == 0)
+        if (strcmp(buffer, "exit") == 0)
         {
             printf("** TCP: socket %d: exit **\n", sockfd);
             return NULL;
         }
         buffer[count - 1] = '\0';
-        printf("TCP: socket %d: received: %s\n", sockfd, buffer);
+        printf("TCP: socket %d: %s\n", sockfd, buffer);
 
         // send to log_s
         
@@ -176,6 +176,6 @@ void *serverTcpConnection(void* argv)
             printf("ERR: TCP: sendto() err to log_s\n");
             exit(1);
         }
-        printf("** TCP: sen msg to log_s successful: %s **\n", logBuffer);
+        // printf("** TCP: sen msg to log_s successful: %s **\n", logBuffer);
     }
 }

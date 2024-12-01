@@ -35,11 +35,11 @@ int main(int argc, char** argv)
 
     // check if argv[1] is valid protocol option
     // set protocol
-    if (strcmp(argv[2], "-u") == 0)
+    if (strcmp(argv[1], "-u") == 0)
     {
         protocol = UDP;
     }
-    else if (strcmp(argv[2], "-t") == 0)
+    else if (strcmp(argv[1], "-t") == 0)
     {
         protocol = TCP;
     }
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 
     // check if argv[3] is valid port
     char* endptr;
-    int portTemp = (int) strtol(argv[1], &endptr, 10); // int portTemp because ushort gurantees "wacky" conversion
+    int portTemp = (int) strtol(argv[3], &endptr, 10); // int portTemp because ushort gurantees "wacky" conversion
     if (*endptr != '\0')
     {
         printf("ERR: port not a number\n");
@@ -80,14 +80,22 @@ int main(int argc, char** argv)
 
 }
 
+/**
+ * used to 
+ */
+
 void tcpCli(char* ip, ushort port)
 {
     // definitions
     int sockfd;
     sockaddr_in servaddr;
+    char buffer[100];
+
+    // for debug
+    printf("%s - %d\n", ip, port);
 
     // create and connect socket to server
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
         printf("ERR: socket creation failed\n");
@@ -96,11 +104,45 @@ void tcpCli(char* ip, ushort port)
     bzero((void*) &servaddr, sizeof(struct sockaddr_in));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(port);
-    servaddr.sin_addr.s_addr = htonl(inet_addr(ip));
-    if (connect(sockfd, (const sockaddr *) &servaddr, sizeof(struct sockaddr_in) != 0))
+    servaddr.sin_addr.s_addr = inet_addr(ip);
+    if (connect(sockfd, (const sockaddr *) &servaddr, sizeof(struct sockaddr_in)) != 0)
     {
         printf("ERR: connection failed\n");
         exit(1);
+    }
+
+    // sending infos to server
+
+    while (true)
+    {
+        fgets(buffer, sizeof(buffer), stdin);
+        bool emptyBuffer = false;
+
+        // remove newline char
+        for (int i = 0; i < sizeof(buffer); i++)
+        {
+            if (buffer[i] == '\n')
+            {
+                buffer[i] = '\0';
+                if (i == 0) emptyBuffer = true;
+                break;
+            }
+        }
+        if (emptyBuffer) continue;
+
+        // send to server
+        int status = send(sockfd, (const void *) buffer, sizeof(buffer), 0);
+        if (status == -1)
+        {
+            printf("ERR: send() failed\n");
+            exit(1);
+        }
+
+        // done if typed exit
+        if (strcmp(buffer, "exit") == 0)
+        {
+            return;
+        }
     }
 
 }

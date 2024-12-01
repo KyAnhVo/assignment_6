@@ -1,9 +1,3 @@
-/**
- * Author: Ky Anh Vo
- * Class: CS3377-502
- * Description: server that receives from any ip through a specified op. Max 5 TCP, UDP can be whatever.
- */
-
 #include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -52,7 +46,7 @@ int main(int argc, char** argv)
         exit(1);
     }
     ushort port = (ushort) portTemp;
-    printf("** PORT RECOGNIZED: #%d **\n", port);
+    // printf("** PORT RECOGNIZED: #%d **\n", port);
 
     // each thread handle udp/tcp on itself
     pthread_create(&tcpThread, NULL, serverTCP, (void *) &port);
