@@ -13,5 +13,8 @@
 # Allow .gitignore
 !.gitignore
 
+# Allow readme
+!readme
+
 # Allow directories so Git can traverse into them
 !*/
