@@ -88,11 +88,8 @@ void tcpCli(char* ip, ushort port)
 {
     // definitions
     int sockfd;
-    sockaddr_in servaddr;
+    struct sockaddr_in servaddr;
     char buffer[100];
-
-    // for debug
-    printf("%s - %d\n", ip, port);
 
     // create and connect socket to server
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -112,23 +109,11 @@ void tcpCli(char* ip, ushort port)
     }
 
     // sending infos to server
-
     while (true)
     {
         fgets(buffer, sizeof(buffer), stdin);
-        bool emptyBuffer = false;
-
-        // remove newline char
-        for (int i = 0; i < sizeof(buffer); i++)
-        {
-            if (buffer[i] == '\n')
-            {
-                buffer[i] = '\0';
-                if (i == 0) emptyBuffer = true;
-                break;
-            }
-        }
-        if (emptyBuffer) continue;
+        
+        if (buffer[0] == '\n') continue;
 
         // send to server
         int status = send(sockfd, (const void *) buffer, sizeof(buffer), 0);
@@ -139,7 +124,7 @@ void tcpCli(char* ip, ushort port)
         }
 
         // done if typed exit
-        if (strcmp(buffer, "exit") == 0)
+        if (strcmp(buffer, "exit\n") == 0)
         {
             return;
         }
@@ -149,5 +134,46 @@ void tcpCli(char* ip, ushort port)
 
 void udpCli(char* ip, ushort port)
 {
+    // definitions
+    int sockfd;
+    struct sockaddr_in servaddr;
+    char buffer[100];
+
+    // create socket
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd == -1)
+    {
+        printf("ERR: socket creation failed\n");
+        exit(1);
+    }
+
+    // change server addr
+    bzero((void*) &servaddr, sizeof(struct sockaddr_in));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(port);
+    servaddr.sin_addr.s_addr = inet_addr(ip);
+
+    // sending infos to server
+    while (true)
+    {
+        fgets(buffer, sizeof(buffer), stdin);
+        bool emptyBuffer = false;
+
+        if (buffer[0] == '\n') continue;
+
+        // send to server
+        int status = sendto(sockfd, (const void *) buffer, sizeof(buffer), 0, (const sockaddr *) &servaddr, sizeof(struct sockaddr_in));
+        if (status == -1)
+        {
+            printf("ERR: send() failed\n");
+            exit(1);
+        }
+
+        // done if typed exit
+        if (strcmp(buffer, "exit\n") == 0)
+        {
+            return;
+        }
+    }
     
 }

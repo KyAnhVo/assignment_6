@@ -37,7 +37,7 @@ void *serverTCP(void* argv)
     // declarations
     int sockfd, connfd, status;
     uint len;
-    struct sockaddr_in servaddr, cli[5];
+    struct sockaddr_in servaddr;
 
     // create socket
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -74,19 +74,33 @@ void *serverTCP(void* argv)
     // printf("** TCP: listen successfully **\n");
 
     struct ThreadArgs arg[5];
-    for (int i = 0; i < 5; i++)
-    {
-        socklen_t len = sizeof(cli[i]);
-        int s = accept(sockfd, (sockaddr *) (cli + i), &len);
-        
-        arg[i].socket = s;
-        arg[i].clientAddress = cli + i;
-        pthread_create(threads + i, NULL, serverTcpConnection, (void*) (arg + i));
-    }
-
-    for (int i = 0; i < 5; i++)
-    {
-        pthread_join(threads[i], NULL);
+    for (;;)
+    {   
+        pthread_t * thread = new pthread_t;
+        struct ThreadArgs * args = new struct ThreadArgs;
+        args->clientAddress = new struct sockaddr_in;
+        socklen_t len = sizeof(struct sockaddr_in);
+        int s = accept(sockfd, (sockaddr *) args->clientAddress, &len);
+        if (s <= 0)
+        {
+            printf("ERR: TCP: accept failed\n");
+            delete args->clientAddress;
+            delete args;
+            delete thread;
+            continue;
+        }
+        args->socket = s;
+        if (pthread_create(thread, NULL, serverTcpConnection, (void*) args) != 0)
+        {
+            printf("ERR: TCP: pthread_create failed\n");
+            close(s);
+            delete args->clientAddress;
+            delete args;
+            delete thread;
+            continue;
+        }
+        pthread_detach(*thread);
+        delete thread;
     }
     
     // close socket, return from thread
@@ -100,9 +114,9 @@ void *serverTCP(void* argv)
  */
 void *serverTcpConnection(void* argv)
 {
-    struct ThreadArgs args = *((struct ThreadArgs *) argv);
-    int sockfd = args.socket, logsfd;
-    sockaddr_in cli = *(args.clientAddress), logsaddr;
+    struct ThreadArgs * args = (struct ThreadArgs *) argv;
+    int sockfd = args->socket, logsfd;
+    sockaddr_in cli = *(args->clientAddress), logsaddr;
     // printf("** TCP: accepted call at socket %d **\n", sockfd);
 
     // setup log_s communication
@@ -110,7 +124,11 @@ void *serverTcpConnection(void* argv)
     if (logsfd == -1)
     {
         printf("ERR: TCP: create log_s socket failed\n");
-        exit(1);
+        delete args->clientAddress;
+        delete args;
+        close(sockfd);
+        close(logsfd);
+        return NULL;
     }
     // printf("** TCP: create socket successfully for log_s **\n");
 
@@ -119,21 +137,19 @@ void *serverTcpConnection(void* argv)
     if (setsockopt(logsfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
         printf("ERR: TCP: setsockopt failed\n");
-        exit(1);    
+        delete args->clientAddress;
+        delete args;
+        close(sockfd);
+        close(logsfd);
+        return NULL;
     }
     // printf("** TCP: set SO_REUSEADDR successfully for log_s **\n");
 
-    // bind log_s to 9999 port
+    // create log_s sockaddr_in with loopback and port 9999 (assume using same pc for simplicity)
     bzero(&logsaddr, sizeof(struct sockaddr_in));
     logsaddr.sin_port           = htons((short) 9999);
     logsaddr.sin_family         = AF_INET;
     logsaddr.sin_addr.s_addr    = inet_addr("127.0.0.1");
-    if (bind(logsfd, (const SA *) &logsaddr, sizeof(struct sockaddr_in)) != 0)
-    {
-        printf("ERR: TCP: bind socket-port failed for log_s\n");
-        exit(1);
-    }
-    // printf("** TCP: bind socket-port successfully for log_s **\n");
 
     char buffer[100];
     
@@ -144,14 +160,22 @@ void *serverTcpConnection(void* argv)
         if (count == -1)
         {
             ("ERR: TCP: socket %d: recv() error\n", sockfd);
+            break;
         }
         if (count == 0) continue;
-        if (strcmp(buffer, "exit") == 0)
+        if (strcmp(buffer, "exit\n") == 0)
         {
             printf("** TCP: socket %d: exit **\n", sockfd);
-            return NULL;
+            break;
         }
-        buffer[count - 1] = '\0';
+        for (int i = 0; i < count; i++)
+        {
+            if (buffer[i] == '\n')
+            {
+                buffer[i] = '\0';
+                break;
+            }
+        }
         printf("TCP: socket %d: %s\n", sockfd, buffer);
 
         // send to log_s
@@ -174,8 +198,14 @@ void *serverTcpConnection(void* argv)
         if (countlogs == -1)
         {
             printf("ERR: TCP: sendto() err to log_s\n");
-            exit(1);
+            break;
         }
         // printf("** TCP: sen msg to log_s successful: %s **\n", logBuffer);
     }
+
+    delete args->clientAddress;
+    delete args;
+    close(sockfd);
+    close(logsfd);
+    return NULL;
 }

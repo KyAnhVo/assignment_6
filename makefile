@@ -7,6 +7,9 @@ echo_s : ${OBJ} | ${F}
 echo_c : echo_c.cpp
 	g++ -o echo_c echo_c.cpp -lpthread
 
+log_s : log_s.cpp
+	g++ -o log_s log_s.cpp
+
 ${F}/echo_s.o : echo_s.cpp | ${F}
 	g++ -c echo_s.cpp -lpthread
 	mv echo_s.o ${F}

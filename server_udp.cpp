@@ -72,17 +72,11 @@ void *serverUDP(void* argv)
     }
     // printf("** TCP: set SO_REUSEADDR successfully for log_s **\n");
 
-    // bind log_s to 9999 port
+    // create log_s sockaddr_in with loopback and port 9999 (assume using same pc for simplicity)
     bzero(&logsaddr, sizeof(struct sockaddr_in));
     logsaddr.sin_port           = htons((short) 9999);
     logsaddr.sin_family         = AF_INET;
     logsaddr.sin_addr.s_addr    = inet_addr("127.0.0.1");
-    if (bind(logsfd, (const SA *) &logsaddr, sizeof(struct sockaddr_in)) != 0)
-    {
-        printf("ERR: UDP: bind socket-port failed for log_s\n");
-        exit(1);
-    }
-    // printf("** UDP: bind socket-port successfully for log_s **\n");
 
     char buffer[100];
     while (1)
@@ -97,8 +91,16 @@ void *serverUDP(void* argv)
         }
         if (count == 0) continue;
         if (count == 1) continue;
-        // delete the \n, change it into null char
-        buffer[count - 1] = '\0';
+
+        for (int i = 0; i < count; i++)
+        {
+            if (buffer[i] == '\n')
+            {
+                buffer[i] = '\0';
+                break;
+            }
+        }
+        
         printf("UDP: socket %d: %s\n", sockfd, buffer);
 
         // send to log_s
