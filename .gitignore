@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# Allow .h files
+!*.h
+
+# Allow .cpp files
+!*.cpp
+
+# Allow Makefile (case-sensitive)
+!makefile
+
+# Allow .gitignore
+!.gitignore
+
+# Allow directories so Git can traverse into them
+!*/
