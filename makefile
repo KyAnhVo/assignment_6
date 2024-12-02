@@ -20,3 +20,7 @@ ${F}/%.o : %.cpp %.h | ${F}
 
 ${F} :
 	mkdir -p ${F}
+
+clean :
+	rm -Rf objFile
+	rm echo_c echo_s log_s echo.log

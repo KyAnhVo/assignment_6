@@ -1,0 +1,46 @@
+# echo_s echo_c log_s
+
+## Description
+- echo_c is used to send information, either using tcp or udp protocol,
+  to an ip address, with specified port number.
+- echo_s is used to receive information from both tcp and udp protocol
+  to a specified port number (and the host computer's ip address)
+- log_s is used to log informations received by echo_s into echo.log
+
+## Instruction
+- run the following commands for compilation:
+    make echo_s
+    make echo_c
+    make log_s
+- to run echo_s:
+    ./echo_s <port number>
+    + <port number>: port number to receive data from
+- to run echo_c:
+    ./echo_c <protocol> <IP address> <port number>
+    + <protocol>: -u (udp) or -t (tcp)
+    + <IP address>: IP address to send data to
+    + <port number>: port on receiving machine
+- to run log_s:
+    ./log_s
+
+## Note
+- echo_s and log_s are expected to run on the same machine with port 9999 open,
+  due to echo_s use loopback address to communicate with log_s
+- echo.log will appear when log_s is run
+- The maximum message length echo_s can handle at a time is 99 bytes (plus 1 byte for the null terminator).
+
+## File structure
+.
+├── makefile         # The Makefile for building the project
+├── echo_s.cpp       # Main source file for the echo_s server
+├── server_tcp.cpp   # Source file for TCP server functionality
+├── server_tcp.h     # Header file for TCP server functionality
+├── server_udp.cpp   # Source file for UDP server functionality
+├── server_udp.h     # Header file for UDP server functionality
+├── echo_c.cpp       # Source file for the client program
+├── log_s.cpp        # Source file for the log_s program
+└── objFile/         # Directory created to store object files
+    ├── echo_s.o     # Object file for echo_s.cpp
+    ├── server_tcp.o # Object file for server_tcp.cpp
+    └── server_udp.o # Object file for server_udp.cpp
+
